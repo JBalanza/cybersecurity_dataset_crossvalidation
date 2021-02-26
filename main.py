@@ -6,6 +6,7 @@ import zeek_conn
 import os
 from database import Database
 
+
 #returns: given a directory, gives the pcap and conn.log.labeled files.
 def get_files(dir):
     pcaps = []
@@ -31,20 +32,21 @@ def get_subsets(dir):
     return subsets
 
 #TODO bulk insert
-def insert_csv(dataset, file):
+def insert_csv(dataset, csv):
     with open(csv, 'r') as file:
         lines = file.readlines()
         #headers = lines[0].split(",")
         #for e,i in enumerate(headers):
         #    print(e,i)
         del lines[0] #delete headers
+        buffer = []
         for line in lines:
             elmts = line.split(",")
             src_addr = elmts[0]
             dst_addr = elmts[1]
-            src_port = elmts[2]
-            dst_port = elmts[3]
-            proto = elmts[4]
+            src_port = int(elmts[2])
+            dst_port = int(elmts[3])
+            proto = int(elmts[4])
             timestamp = elmts[5]
             flow_duration = elmts[6] # Notused
             fwd_pkts_per_s = elmts[9]
@@ -53,24 +55,36 @@ def insert_csv(dataset, file):
             pkt_len_mean = elmts[25]
             down_up_ratio = elmts[57]
             bwd_pkt_len_min = elmts[20]
-            ddbb.insert_features(dataset, timestamp, src_addr, src_port, dst_addr, dst_port, proto, pkt_size_avg, pkt_len_min, pkt_len_mean, fwd_pkts_per_s, down_up_ratio, bwd_pkt_len_min)
+            buffer.append([dataset, timestamp, src_addr, src_port, dst_addr, dst_port, proto, pkt_size_avg, pkt_len_min, pkt_len_mean, fwd_pkts_per_s, down_up_ratio, bwd_pkt_len_min])
+        return ddbb.insert_features(buffer)
 
 #TODO check timestamp before updating. Not in the paper but desirable IMO
-def update_labels(dataset,file):
-    zeek_entries = zeek_conn.parse_zeek_conn(file)
-    for entry in zeek_entries:
-        ddbb.update_label_conn_log(dataset, entry.id_orig_h, entry.id_orig_p, entry.id_resp_h, entry.id_resp_p, entry.proto, entry.label)
+def update_labels(database, file):
+    entries = zeek_conn.get_lines(database, file)
+    return ddbb.update_label_conn_log(entries)
+
+def insert_all_data(dataset, dir):
+    subsets = get_subsets(dir)
+    for subset in subsets:
+        entries_inserted = 0
+        entries_labeled = 0
+        pcaps, conn_log, csvs = get_files(subset)
+        # print(zeek_conn.get_unique(zeek_entries, 'local_resp'))
+        for csv in csvs:
+            entries_inserted += insert_csv(dataset, csv)
+        print("entries inserted from", subset, entries_inserted)
+        for conn_file in conn_log:
+            entries_labeled += update_labels(dataset, conn_file)
+        print("entries labeled from", subset, entries_labeled)
+        entries_cleaned = ddbb.delete_empty_entries()
+        print("entries deleted from", subset, entries_cleaned)
 
 
 ## MAIN ##
 ddbb = Database(config.database_file)
 ddbb.create_tables()
-subsets = get_subsets(config.dataset_iot23_dir)
-pcaps, conn_log, csvs = get_files(subsets[0])
-#print(zeek_conn.get_unique(zeek_entries, 'local_resp'))
-for csv in csvs:
-    #insert_csv('iot23',csv)
-    pass
-for conn_file in conn_log:
-    update_labels('iot23',conn_file)
-    pass
+ddbb.delete_empty_entries()
+insert_all_data('iot23', config.dataset_iot23_dir)
+
+#df = ddbb.dump_database()
+#df.to_csv(config.csv_file, index=False)
