@@ -5,6 +5,7 @@ import config
 import zeek_conn
 import os
 from database import Database
+from datetime import datetime
 
 
 #returns: given a directory, gives the pcap and conn.log.labeled files.
@@ -47,7 +48,7 @@ def insert_csv(dataset, csv):
             src_port = int(elmts[2])
             dst_port = int(elmts[3])
             proto = int(elmts[4])
-            timestamp = elmts[5]
+            timestamp = datetime.fromisoformat(elmts[5])
             flow_duration = elmts[6] # Notused
             fwd_pkts_per_s = elmts[9]
             pkt_size_avg = elmts[58]

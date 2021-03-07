@@ -28,7 +28,7 @@ class Database:
 
     def update_label_conn_log(self, lines):
         handler = self.connection.cursor()
-        handler.executemany('''UPDATE ENTRIES SET label=? WHERE dataset=? AND src_addr=? AND src_port=? AND dst_addr=? AND dst_port=? AND proto=?''', lines)
+        handler.executemany('''UPDATE ENTRIES SET label=? WHERE dataset=? AND timestamp=? AND src_addr=? AND src_port=? AND dst_addr=? AND dst_port=? AND proto=?''', lines)
         self.connection.commit()
         return handler.rowcount
 
@@ -55,8 +55,7 @@ class Database:
 
     def delete_empty_entries(self):
         handler = self.connection.cursor()
-        input = [None]
-        handler.execute('''DELETE FROM ENTRIES WHERE label=?''', input)
+        handler.execute('''DELETE FROM ENTRIES WHERE label is null''')
         self.connection.commit()
         return handler.rowcount
 

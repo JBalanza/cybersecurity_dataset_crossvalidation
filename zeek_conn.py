@@ -1,10 +1,10 @@
-import scapy
 import socket
-from database import Database
+from datetime import datetime
+from dateutil import tz
 
 proto_table = {num: name[8:] for name, num in vars(socket).items() if name.startswith("IPPROTO")}
 proto_table = dict(zip(proto_table.values(), proto_table.keys()))
-
+tzone_iot23 = tz.gettz('Etc/GMT+4')
 class zeek_conn_entry:
     def __init__(self, line):
         elemts = line.split()
@@ -52,13 +52,14 @@ def get_lines(database, file):
         for line in f.readlines():
             if not line.startswith('#'):
                 elemts = line.split()
+                ts = datetime.fromtimestamp(int(float(elemts[0])), tz=tzone_iot23).strftime("%Y-%m-%d %H:%M:%S")
                 id_orig_h = elemts[2]  # addr (e.g: 192.168.1.132)
                 id_orig_p = int(elemts[3])  # port (e.g: 58687)
                 id_resp_h = elemts[4]  # addr (e.g: 192.168.1.1)
                 id_resp_p = int(elemts[5])  # port (e.g: 22)
                 proto = proto_table[elemts[6].upper()]  # string-enum (e.g: udp)
                 label = elemts[21]  # string (e.g: benign)
-                entries.append([label, database, id_orig_h, id_orig_p, id_resp_h, id_resp_p, proto])
+                entries.append([label, database, ts, id_orig_h, id_orig_p, id_resp_h, id_resp_p, proto])
     return entries
 
 def get_unique(entries, field):
