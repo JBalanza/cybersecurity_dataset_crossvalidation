@@ -37,7 +37,7 @@ def get_files(dir):
         for f in filenames:
             if '.pcap' in f:
                 pcaps.append(os.path.join(dp,f))
-            elif 'conn.log.labeled' in f:
+            elif 'conn' in f:
                 conn_file.append(os.path.join(dp,f))
             elif '.csv' in f:
                 csvs.append(os.path.join(dp,f))
@@ -184,19 +184,19 @@ def update_labels_csv_entries(csv_entries, zeek_entries):
             continue
     return csv_entries, updated
 
-def chunk_file(csv):
+def chunk_file(file, chunk_size):
     file_number = 1
-    filename = os.path.basename(csv).split(".")[0]
-    dir = os.path.dirname(csv)
-    with open(csv,'r') as f:
-        file = f.readlines()
-        if len(file) > config.csv_slip_size:
-            for chunk in list(chunks(file, config.csv_slip_size)):
+    filename = os.path.basename(file).split(".")[0]
+    dir = os.path.dirname(file)
+    with open(file,'r') as f:
+        lines = f.readlines()
+        if len(lines) > chunk_size:
+            for chunk in list(chunks(lines, chunk_size)):
                 with open(os.path.join(dir, filename + str(file_number)+".csv"), 'w') as chunk_file:
                     chunk_file.writelines(chunk)
-                print("Chunked",csv, "into", filename + str(file_number)+".csv")
+                print("Chunked",file, "into", filename + str(file_number)+".csv")
                 file_number += 1
-    os.remove(csv)
+    os.remove(file)
 
 #TODO delete whatever is not a .csv
 def preprocess(dir):
@@ -204,7 +204,9 @@ def preprocess(dir):
     for subset in subsets:
         pcaps, conn_log, csvs = get_files(subset)
         for csv in csvs:
-            chunk_file(csv)
+            chunk_file(csv, config.csv_slip_size)
+        for conn_file in conn_log:
+            chunk_file(conn_file, config.conn_log_slip_size)
 
 ## MAIN ##
 ddbb = Database(config.database_file)
