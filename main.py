@@ -123,18 +123,14 @@ def insert_all_data_memory(dataset, dir):
                 print("entries read from", subset, entries_read)
                 for conn_file in conn_log:
                     zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
-                    chunks_size = 50000
-                    chunks_total = int(len(zeek_entries)/chunks_size)
-                    for i, chunk in enumerate(list(chunks(zeek_entries, chunks_size))):
-                        print("Updated chunk from", subset, i, "/", chunks_total)
-                        entries_array_labeled, updated = update_labels_csv_entries(entries_array, chunk)
-                        entries_labeled += updated
+                    print("labels read:", len(zeek_entries))
+                    updated = update_labels_csv_entries(entries_array, zeek_entries)
+                    entries_labeled += updated
                     #Save some RAM
-                    del entries_array
                     del zeek_entries
                 print("entries labeled from", subset, entries_labeled)
                 #insert into database
-                for set_entries in entries_array_labeled.values():
+                for set_entries in entries_array.values():
                     buffer = []
                     for set_entries2 in set_entries.values():
                         #ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
@@ -142,7 +138,7 @@ def insert_all_data_memory(dataset, dir):
                     ddbb.insert_features_with_label(buffer)
                 entries_cleaned = ddbb.delete_empty_entries()
                 #save some RAM
-                del entries_array_labeled
+                del entries_array
                 print("entries deleted from", subset, entries_cleaned)
         except IndexError as e:
             print(e)
@@ -182,7 +178,7 @@ def update_labels_csv_entries(csv_entries, zeek_entries):
                     updated += 1
         except KeyError:
             continue
-    return csv_entries, updated
+    return updated
 
 def chunk_file(file, chunk_size):
     file_number = 1
