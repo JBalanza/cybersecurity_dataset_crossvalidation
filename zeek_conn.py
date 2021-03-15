@@ -22,21 +22,21 @@ class zeek_conn_entry:
         self.id_resp_p = elemts[5] # port (e.g: 22)
         self.proto = int(proto_table[elemts[6].upper()]) # string-enum (e.g: 17)
         self.service = elemts[7] # string-enum (e.g: dns)
-        self.duration = elemts[8] # double (e.g: 0.114184)
-        self.orig_bytes = elemts[9] # int (e.g: 48)
-        self.resp_bytes = elemts[10] # int (e.g: 48)
-        self.conn_state = elemts[11] # string (e.g: SF, S0, OTH)
-        self.local_orig = elemts[12] # bool
-        self.local_resp = elemts[13] # bool
-        self.missed_bytes = elemts[14] # int (e.g: 0)
-        self.history = elemts[15] # string (e.g: ShAFf, Dd)
-        self.orig_pkts = elemts[16] # int (e.g: 1)
-        self.orig_ip_bytes = elemts[17] # int (e.g: 40)
-        self.resp_pkts = elemts[18] # int (e.g: 1)
-        self.resp_ip_bytes = elemts[19] # int (e.g: 40)
-        self.tunnel_parents = elemts[20]
+        #self.duration = elemts[8] # double (e.g: 0.114184)
+        #self.orig_bytes = elemts[9] # int (e.g: 48)
+        #self.resp_bytes = elemts[10] # int (e.g: 48)
+        #self.conn_state = elemts[11] # string (e.g: SF, S0, OTH)
+        #self.local_orig = elemts[12] # bool
+        #self.local_resp = elemts[13] # bool
+        #self.missed_bytes = elemts[14] # int (e.g: 0)
+        #self.history = elemts[15] # string (e.g: ShAFf, Dd)
+        #self.orig_pkts = elemts[16] # int (e.g: 1)
+        #self.orig_ip_bytes = elemts[17] # int (e.g: 40)
+        #self.resp_pkts = elemts[18] # int (e.g: 1)
+        #self.resp_ip_bytes = elemts[19] # int (e.g: 40)
+        #self.tunnel_parents = elemts[20]
         self.label = elemts[21] # string (e.g: benign)
-        self.detailed_label = elemts[22] # string (e.g: )
+        #self.detailed_label = elemts[22] # string (e.g: )
 
 
 def parse_zeek_conn(file):
