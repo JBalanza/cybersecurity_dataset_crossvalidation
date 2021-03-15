@@ -184,15 +184,19 @@ def chunk_file(file, chunk_size):
     file_number = 1
     filename = os.path.basename(file).split(".")[0]
     dir = os.path.dirname(file)
+    chunked = False
     with open(file,'r') as f:
         lines = f.readlines()
         if len(lines) > chunk_size:
+            chunked = True
             for chunk in list(chunks(lines, chunk_size)):
                 with open(os.path.join(dir, filename + str(file_number)+".csv"), 'w') as chunk_file:
                     chunk_file.writelines(chunk)
                 print("Chunked",file, "into", filename + str(file_number)+".csv")
                 file_number += 1
-    os.remove(file)
+    if chunked:
+        print("Removing", file)
+        os.remove(file)
 
 #TODO delete whatever is not a .csv
 def preprocess(dir):
@@ -208,8 +212,8 @@ def preprocess(dir):
 ddbb = Database(config.database_file)
 ddbb.create_tables()
 ddbb.delete_empty_entries()
-#preprocess(config.dataset_iot23_dir)
-insert_all_data_memory('iot23', config.dataset_iot23_dir)
+preprocess(config.dataset_iot23_dir)
+#insert_all_data_memory('iot23', config.dataset_iot23_dir)
 #insert_all_data('iot23', config.dataset_iot23_dir)
 
 #df = ddbb.dump_database()
