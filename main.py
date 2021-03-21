@@ -3,6 +3,7 @@
 
 import config
 import zeek_conn
+import argus_conn
 import os
 from database import Database
 from datetime import datetime
@@ -32,6 +33,7 @@ class csv_entry:
 def get_files(dir):
     pcaps = []
     conn_file = []
+    argus = []
     csvs = []
     for dp, dn, filenames in os.walk(dir):
         for f in filenames:
@@ -39,11 +41,13 @@ def get_files(dir):
                 pcaps.append(os.path.join(dp,f))
             elif 'conn' in f:
                 conn_file.append(os.path.join(dp,f))
+            elif 'argus' in f:
+                argus.append(os.path.join(dp, f))
             elif '.csv' in f:
                 csvs.append(os.path.join(dp,f))
             else:
                 continue
-    return pcaps, conn_file, csvs
+    return pcaps, conn_file, csvs, argus
 
 def get_subsets(dir):
     subsets = []
@@ -116,30 +120,60 @@ def insert_all_data_memory(dataset, dir):
     entries_labeled = 0
     for subset in subsets:
         try:
-            pcaps, conn_log, csvs = get_files(subset)
-            for csv in csvs:
-                entries_array, read = create_entries_array(csv, {})
-                entries_read += read
-                print("entries read from", subset, entries_read)
-                for conn_file in conn_log:
-                    zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
-                    print("labels read:", len(zeek_entries))
-                    updated = update_labels_csv_entries(entries_array, zeek_entries)
-                    entries_labeled += updated
-                    #Save some RAM
-                    del zeek_entries
-                print("entries labeled from", subset, entries_labeled)
-                #insert into database
-                for set_entries in entries_array.values():
-                    buffer = []
-                    for set_entries2 in set_entries.values():
-                        #ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
-                        buffer.extend(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
-                    ddbb.insert_features_with_label(buffer)
-                entries_cleaned = ddbb.delete_empty_entries()
-                #save some RAM
-                del entries_array
-                print("entries deleted from", subset, entries_cleaned)
+            pcaps, conn_log, csvs, argus = get_files(subset)
+            if dataset == 'iot23':
+                for csv in csvs:
+                    entries_array, read = create_entries_array(csv, {})
+                    entries_read += read
+                    print(datetime.now())
+                    print("entries read from", csv, entries_read)
+                    for conn_file in conn_log:
+                        zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
+                        print("labels read:", len(zeek_entries))
+                        updated = update_labels_csv_entries(entries_array, zeek_entries)
+                        entries_labeled += updated
+                        #Save some RAM
+                        del zeek_entries
+                    print("entries labeled from", conn_file, entries_labeled)
+                    #insert into database
+                    for set_entries in entries_array.values():
+                        buffer = []
+                        for set_entries2 in set_entries.values():
+                            #ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                            buffer.extend(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                        ddbb.insert_features_with_label(buffer)
+                    entries_cleaned = ddbb.delete_empty_entries()
+                    #save some RAM
+                    del entries_array
+                    #TODO: not labeled are ok instead of deletion.
+                    print("entries deleted from", subset, entries_cleaned)
+            elif dataset == 'botnet_iot':
+                #TODO: processed file to do not repeat
+                for csv in csvs:
+                    entries_array, read = create_entries_array(csv, {})
+                    entries_read += read
+                    print(datetime.now())
+                    print("entries read from", csv, entries_read)
+                    for argus_file in argus:
+                        argus_entries = argus_conn.parse_argus_conn(argus_file)
+                        print(argus_entries[0:7])
+                        print("labels read:", len(argus_entries))
+                        updated = update_labels_csv_entries(entries_array, argus_entries)
+                        entries_labeled += updated
+                        # Save some RAM
+                        del argus_entries
+                    print("entries labeled from", argus_file, entries_labeled)
+                    # insert into database
+                    for set_entries in entries_array.values():
+                        buffer = []
+                        for set_entries2 in set_entries.values():
+                            # ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                            buffer.extend(list(map(lambda ent: ent.to_insert(dataset), set_entries2)))
+                        ddbb.insert_features_with_label(buffer)
+                    entries_cleaned = ddbb.delete_empty_entries()
+                    # save some RAM
+                    del entries_array
+                    print("entries deleted from", subset, entries_cleaned)
         except IndexError as e:
             print(e)
             print(subset)
@@ -168,13 +202,13 @@ def create_entries_array(csv, buffer):
             read += 1
     return buffer, read
 
-def update_labels_csv_entries(csv_entries, zeek_entries):
+def update_labels_csv_entries(csv_entries, label_entries):
     updated = 0
-    for zeek in zeek_entries:
+    for entry in label_entries:
         try:
-            for csv_entry1 in csv_entries[zeek.id_orig_h][zeek.id_resp_h]:
-                if zeek.id_orig_p == csv_entry1.src_port and zeek.id_resp_p == csv_entry1.dst_port and zeek.proto == csv_entry1.proto and zeek.ts == csv_entry1.timestamp:
-                    csv_entry1.label = zeek.label
+            for csv_entry1 in csv_entries[entry.id_orig_h][entry.id_resp_h]:
+                if entry.id_orig_p == csv_entry1.src_port and entry.id_resp_p == csv_entry1.dst_port and entry.proto == csv_entry1.proto and entry.ts == csv_entry1.timestamp:
+                    csv_entry1.label = entry.label
                     updated += 1
         except KeyError:
             continue
@@ -209,12 +243,18 @@ def preprocess(dir):
             chunk_file(conn_file, config.conn_log_slip_size)
 
 ## MAIN ##
+print("Start at:", datetime.now())
 ddbb = Database(config.database_file)
 ddbb.create_tables()
 ddbb.delete_empty_entries()
-preprocess(config.dataset_iot23_dir)
+#preprocess(config.dataset_iot23_dir)
 #insert_all_data_memory('iot23', config.dataset_iot23_dir)
 #insert_all_data('iot23', config.dataset_iot23_dir)
 
-#df = ddbb.dump_database()
-#df.to_csv(config.csv_file, index=False)
+insert_all_data_memory('botnet_iot', config.dataset_botnetiot_dir)
+
+
+#df = ddbb.dump_database('iot23')
+#df.to_csv(config.dataset_iot23_csv_file, index=False)
+
+print("Ends at:", datetime.now())

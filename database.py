@@ -116,8 +116,8 @@ class Database:
             label
         FROM ENTRIES
         WHERE 
-            label is not NULL
-        ''', self.connection)
+            label is not NULL and dataset=?
+        ''', self.connection, params=[dataset])
         return db_df
 
     #TODO delete those who have -99999 (introduced in dlows.py)
