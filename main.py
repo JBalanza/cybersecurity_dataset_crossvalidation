@@ -30,6 +30,7 @@ class csv_entry:
                 self.bwd_pkt_len_min, self.label]
 
 #returns: given a directory, gives the pcap and conn.log.labeled files.
+# TODO modify to get files in the botnet iot file structure
 def get_files(dir):
     pcaps = []
     conn_file = []
@@ -123,57 +124,69 @@ def insert_all_data_memory(dataset, dir):
             pcaps, conn_log, csvs, argus = get_files(subset)
             if dataset == 'iot23':
                 for csv in csvs:
-                    entries_array, read = create_entries_array(csv, {})
-                    entries_read += read
-                    print(datetime.now())
-                    print("entries read from", csv, entries_read)
-                    for conn_file in conn_log:
-                        zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
-                        print("labels read:", len(zeek_entries))
-                        updated = update_labels_csv_entries(entries_array, zeek_entries)
-                        entries_labeled += updated
-                        #Save some RAM
-                        del zeek_entries
-                    print("entries labeled from", conn_file, entries_labeled)
-                    #insert into database
-                    for set_entries in entries_array.values():
-                        buffer = []
-                        for set_entries2 in set_entries.values():
-                            #ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
-                            buffer.extend(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
-                        ddbb.insert_features_with_label(buffer)
-                    entries_cleaned = ddbb.delete_empty_entries()
-                    #save some RAM
-                    del entries_array
-                    #TODO: not labeled are ok instead of deletion.
-                    print("entries deleted from", subset, entries_cleaned)
+                    if not config.check_logfile(csv):
+                        entries_array, read = create_entries_array(csv, {})
+                        entries_read += read
+                        print(datetime.now())
+                        print("entries read from", csv, entries_read)
+                        for conn_file in conn_log:
+                            zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
+                            print("labels read:", len(zeek_entries))
+                            updated = update_labels_csv_entries(entries_array, zeek_entries)
+                            entries_labeled += updated
+                            #Save some RAM
+                            del zeek_entries
+                        print("entries labeled from", conn_file, entries_labeled)
+                        #insert into database
+                        for set_entries in entries_array.values():
+                            buffer = []
+                            for set_entries2 in set_entries.values():
+                                #ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                                buffer.extend(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                            ddbb.insert_features_with_label(buffer)
+                        config.add_logfile(csv)
+                        entries_cleaned = ddbb.delete_empty_entries()
+                        #save some RAM
+                        del entries_array
+                        #TODO: not labeled are ok instead of deletion.
+                        print("entries deleted from", subset, entries_cleaned)
+                    else:
+                        print("csv already processed:", csv)
             elif dataset == 'botnet_iot':
                 #TODO: processed file to do not repeat
                 for csv in csvs:
-                    entries_array, read = create_entries_array(csv, {})
-                    entries_read += read
-                    print(datetime.now())
-                    print("entries read from", csv, entries_read)
-                    for argus_file in argus:
-                        argus_entries = argus_conn.parse_argus_conn(argus_file)
-                        print(argus_entries[0:7])
-                        print("labels read:", len(argus_entries))
-                        updated = update_labels_csv_entries(entries_array, argus_entries)
-                        entries_labeled += updated
-                        # Save some RAM
-                        del argus_entries
-                    print("entries labeled from", argus_file, entries_labeled)
-                    # insert into database
-                    for set_entries in entries_array.values():
-                        buffer = []
-                        for set_entries2 in set_entries.values():
-                            # ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
-                            buffer.extend(list(map(lambda ent: ent.to_insert(dataset), set_entries2)))
-                        ddbb.insert_features_with_label(buffer)
-                    entries_cleaned = ddbb.delete_empty_entries()
-                    # save some RAM
-                    del entries_array
-                    print("entries deleted from", subset, entries_cleaned)
+                    if not config.check_logfile(csv):
+                        entries_array, read = create_entries_array(csv, {})
+                        entries_read += read
+                        print(datetime.now())
+                        print("entries read from", csv, entries_read)
+                        for argus_file in argus:
+                            argus_entries = argus_conn.parse_argus_conn(argus_file)
+                            print("labels read from", argus_file, ":", len(argus_entries))
+                            updated = update_labels_csv_entries(entries_array, argus_entries)
+                            entries_labeled += updated
+                            # Save some RAM
+                            del argus_entries
+                        print("entries labeled from", argus_file, entries_labeled)
+                        # insert into database
+                        for set_entries in entries_array.values():
+                            buffer = []
+                            for set_entries2 in set_entries.values():
+                                # ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                                buffer.extend(list(map(lambda ent: ent.to_insert(dataset), set_entries2)))
+                            ddbb.insert_features_with_label(buffer)
+                        config.add_logfile(csv)
+                        # Add benign to empty label entries
+                        ddbb.add_label_to_empty('benign')
+                        # dump database
+                        df = ddbb.dump_all_database()
+                        df.to_csv(config.dataset_botnetiot_file, mode="a", index=False)
+                        entries_cleaned = ddbb.delete_all_entries()
+                        # save some RAM
+                        del entries_array
+                        print("entries deleted from", subset, entries_cleaned)
+                    else:
+                        print("csv already processed:",csv)
         except IndexError as e:
             print(e)
             print(subset)

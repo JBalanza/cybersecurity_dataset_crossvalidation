@@ -104,6 +104,16 @@ class Database:
         self.connection.commit()
         return handler.rowcount
 
+    def delete_all_entries(self):
+        handler = self.connection.cursor()
+        handler.execute('''DELETE FROM ENTRIES''')
+        self.connection.commit()
+
+    def add_label_to_empty(self, label):
+        handler = self.connection.cursor()
+        handler.execute('''UPDATE ENTRIES SET label=? WHERE label is null''', [label])
+        self.connection.commit()
+        return handler.rowcount
 
     def dump_database(self, dataset):
         db_df = pandas.read_sql_query('''SELECT  
@@ -118,6 +128,19 @@ class Database:
         WHERE 
             label is not NULL and dataset=?
         ''', self.connection, params=[dataset])
+        return db_df
+
+    def dump_all_database(self):
+        db_df = pandas.read_sql_query('''SELECT  
+            pkt_size_avg,
+            pkt_len_min,
+            pkt_len_mean,
+            fwd_pkts_per_s,
+            down_up_ratio,
+            bwd_pkt_len_min,
+            label
+        FROM ENTRIES
+        ''', self.connection)
         return db_df
 
     #TODO delete those who have -99999 (introduced in dlows.py)
