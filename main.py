@@ -145,15 +145,19 @@ def insert_all_data_memory(dataset, dir):
                                 buffer.extend(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
                             ddbb.insert_features_with_label(buffer)
                         config.add_logfile(csv)
-                        entries_cleaned = ddbb.delete_empty_entries()
                         #save some RAM
                         del entries_array
-                        #TODO: not labeled are ok instead of deletion.
-                        print("entries deleted from", subset, entries_cleaned)
+                        # not labeled are ok instead of deletion.
+                        entries_unknown = ddbb.add_label_to_empty('unknown')
+                        # dump database to csv and clean to speed up
+                        df = ddbb.dump_all_database()
+                        df.to_csv(config.dataset_iot23_csv_file, mode="a", index=False)
+                        ddbb.delete_all_entries()
+                        print("entries unknown from", subset, entries_unknown)
                     else:
                         print("csv already processed:", csv)
             elif dataset == 'botnet_iot':
-                #TODO: processed file to do not repeat
+                # processed file to do not repeat
                 for csv in csvs:
                     if not config.check_logfile(csv):
                         entries_array, read = create_entries_array(csv, {})
@@ -175,16 +179,18 @@ def insert_all_data_memory(dataset, dir):
                                 # ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
                                 buffer.extend(list(map(lambda ent: ent.to_insert(dataset), set_entries2)))
                             ddbb.insert_features_with_label(buffer)
-                        config.add_logfile(csv)
-                        # Add benign to empty label entries
-                        ddbb.add_label_to_empty('benign')
-                        # dump database
-                        df = ddbb.dump_all_database()
-                        df.to_csv(config.dataset_botnetiot_file, mode="a", index=False)
-                        entries_cleaned = ddbb.delete_all_entries()
                         # save some RAM
                         del entries_array
-                        print("entries deleted from", subset, entries_cleaned)
+                        # Add file to log
+                        config.add_logfile(csv)
+                        # Add benign to empty label entries
+                        entries_unknown = ddbb.add_label_to_empty('unknown')
+                        # dump database to csv and clean to speed up
+                        df = ddbb.dump_all_database()
+                        df.to_csv(config.dataset_botnetiot_csv_file, mode="a", index=False)
+                        ddbb.delete_all_entries()
+
+                        print("entries unknown from", subset, entries_unknown)
                     else:
                         print("csv already processed:",csv)
         except IndexError as e:
