@@ -4,12 +4,16 @@
 import os
 import socket
 
-logfile = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\processed.txt'
-dataset_iot23_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\iot_23\iot_23_subset'
-dataset_iot23_csv_file =  r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\iot_23\global.csv'
-dataset_botnetiot_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\botnet_iot'
-dataset_botnetiot_csv_file = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\botnet_iot\global.csv'
-database_file = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets\sqlite.db'
+if os.name == 'nt': #windows
+    base_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets'
+else:
+    base_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets'
+logfile = os.path.join(base_dir, 'processed.txt')
+dataset_iot23_dir = os.path.join(base_dir, 'iot_23\iot_23_subset')
+dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23\global.csv')
+dataset_botnetiot_dir = os.path.join(base_dir, 'botnet_iot')
+dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot\global.csv')
+database_file = os.path.join(base_dir, 'sqlite.db')
 csv_slip_size = 3000000
 conn_log_slip_size = 10000000
 
