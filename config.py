@@ -25,7 +25,7 @@ print(proto_table)
 
 def add_logfile(entry):
     with open(logfile, 'a') as f:
-        f.write(entry+'\n')
+        f.writelines([entry])
 
 def check_logfile(entry):
     try:
@@ -34,7 +34,7 @@ def check_logfile(entry):
             for line in lines:
                 if entry in line:
                     return True
-                else:
-                    return False
+            else:
+                return False
     except FileNotFoundError as fnfe:
         return False
