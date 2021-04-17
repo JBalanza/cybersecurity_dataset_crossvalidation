@@ -10,9 +10,9 @@ else:
     base_dir = '/media/javier/Titan/TFM/procesados/'
 logfile = os.path.join(base_dir, 'processed.txt')
 dataset_iot23_dir = os.path.join(base_dir, 'iot_23')
-dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23\global.csv')
+dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23_global.csv')
 dataset_botnetiot_dir = os.path.join(base_dir, 'botnet_iot')
-dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot\global.csv')
+dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot_global.csv')
 database_file = os.path.join(base_dir, 'sqlite.db')
 csv_slip_size = 3000000
 conn_log_slip_size = 10000000
