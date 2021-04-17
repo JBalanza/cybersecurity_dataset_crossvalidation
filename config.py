@@ -31,8 +31,8 @@ def check_logfile(entry):
     try:
         with open(logfile, 'r') as f:
             lines = f.readlines()
-            for l in lines:
-                if entry in l:
+            for line in lines:
+                if entry in line:
                     return True
                 else:
                     return False
