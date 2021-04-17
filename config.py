@@ -7,9 +7,9 @@ import socket
 if os.name == 'nt': #windows
     base_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets'
 else:
-    base_dir = r'C:\Users\JPortatil\Desktop\CarpetaCompartida\Datasets'
+    base_dir = '/media/javier/Titan/TFM/procesados/'
 logfile = os.path.join(base_dir, 'processed.txt')
-dataset_iot23_dir = os.path.join(base_dir, 'iot_23\iot_23_subset')
+dataset_iot23_dir = os.path.join(base_dir, 'iot_23')
 dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23\global.csv')
 dataset_botnetiot_dir = os.path.join(base_dir, 'botnet_iot')
 dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot\global.csv')

@@ -104,7 +104,7 @@ def insert_all_data(dataset, dir):
     for subset in subsets:
         entries_inserted = 0
         entries_labeled = 0
-        pcaps, conn_log, csvs = get_files(subset)
+        pcaps, conn_log, csvs, _ = get_files(subset)
         # print(zeek_conn.get_unique(zeek_entries, 'local_resp'))
         for csv in csvs:
             entries_inserted += insert_csv(dataset, csv)
@@ -255,11 +255,13 @@ def chunk_file(file, chunk_size):
 def preprocess(dir):
     subsets = get_subsets(dir)
     for subset in subsets:
-        pcaps, conn_log, csvs = get_files(subset)
+        pcaps, conn_log, csvs, _ = get_files(subset)
         for csv in csvs:
             chunk_file(csv, config.csv_slip_size)
         for conn_file in conn_log:
             chunk_file(conn_file, config.conn_log_slip_size)
+	#for argus_file in conn_log:
+	#    chunk_file(argus_file, config.conn_log_slip_size)
 
 ## MAIN ##
 print("Start at:", datetime.now())
@@ -267,13 +269,14 @@ ddbb = Database(config.database_file)
 ddbb.create_tables()
 ddbb.delete_empty_entries()
 #preprocess(config.dataset_iot23_dir)
-#insert_all_data_memory('iot23', config.dataset_iot23_dir)
+insert_all_data_memory('iot23', config.dataset_iot23_dir)
 #insert_all_data('iot23', config.dataset_iot23_dir)
 
-insert_all_data_memory('botnet_iot', config.dataset_botnetiot_dir)
+#insert_all_data_memory('botnet_iot', config.dataset_botnetiot_dir)
 
 
 #df = ddbb.dump_database('iot23')
 #df.to_csv(config.dataset_iot23_csv_file, index=False)
 
 print("Ends at:", datetime.now())
+v
