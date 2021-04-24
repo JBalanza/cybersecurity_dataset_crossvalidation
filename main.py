@@ -5,6 +5,7 @@ import config
 import zeek_conn
 import argus_conn
 import os
+from decimal import Decimal
 from database import Database
 from datetime import datetime
 
@@ -15,7 +16,7 @@ class csv_entry:
         self.dst_addr = elmts[1]
         self.src_port = elmts[2]
         self.dst_port = elmts[3]
-        self.proto = int(elmts[4])
+        self.proto = int(Decimal(elmts[4]))
         self.timestamp = datetime.fromisoformat(elmts[5]).strftime("%Y-%m-%d %H:%M:%S")
         self.fwd_pkts_per_s = elmts[9]
         self.pkt_size_avg = elmts[58]
@@ -207,8 +208,8 @@ def create_entries_array(csv, buffer):
             elmts = line.split(",")
             src_addr = elmts[0]
             dst_addr = elmts[1]
-            csv_elem = csv_entry(line)
             try:
+                csv_elem = csv_entry(line)
                 buffer[src_addr][dst_addr].append(csv_elem)
             except KeyError:
                 try:
@@ -218,6 +219,8 @@ def create_entries_array(csv, buffer):
                     buffer[src_addr] = {}
                     buffer[src_addr][dst_addr] = []
                     buffer[src_addr][dst_addr].append(csv_elem)
+            except ValueError:
+                    continue
             read += 1
     return buffer, read
 
