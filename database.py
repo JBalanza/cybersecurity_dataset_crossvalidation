@@ -113,8 +113,7 @@ class Database:
 
     def dump_all_database(self):
         db_df = pandas.read_sql_query('''SELECT  
-            line,
-            label
+            line||','||label
         FROM ENTRIES
         ''', self.connection)
         return db_df

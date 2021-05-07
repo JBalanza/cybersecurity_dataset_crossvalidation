@@ -7,7 +7,7 @@ from datetime import datetime
 class cicflow_entry:
     def __init__(self, line):
         elmts = line.split(",")
-        self.line = line
+        self.line = line.replace('"','').replace("\n","")
         self.src_addr = elmts[0]
         self.dst_addr = elmts[1]
         self.src_port = elmts[2]

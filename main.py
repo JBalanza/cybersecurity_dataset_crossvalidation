@@ -8,7 +8,7 @@ import os
 from database import Database
 from datetime import datetime
 from Cicflow import cicflow_entry
-
+from csv import QUOTE_NONE as NO_QUOTES
 
 #returns: given a directory, gives the pcap and conn.log.labeled files.
 # TODO modify to get files in the botnet iot file structure
@@ -36,6 +36,7 @@ def get_subsets(dir):
     for dp, dn, filenames in os.walk(dir):
         for d in dn:
             subsets.append(os.path.join(dp,d))
+        break
     return subsets
 
 #TODO bulk insert
@@ -111,8 +112,8 @@ def insert_all_data_memory(dataset, dir):
                         print(datetime.now())
                         print("entries read from", csv, entries_read)
                         for conn_file in conn_log:
-                            zeek_entries= zeek_conn.parse_zeek_conn(conn_file)
-                            print("labels read:", len(zeek_entries))
+                            zeek_entries = zeek_conn.parse_zeek_conn(conn_file)
+                            print("labels read from:", conn_file, len(zeek_entries))
                             updated = update_labels_csv_entries(entries_array, zeek_entries)
                             entries_labeled += updated
                             #Save some RAM
@@ -129,10 +130,12 @@ def insert_all_data_memory(dataset, dir):
                         #save some RAM
                         del entries_array
                         # not labeled are ok instead of deletion.
-                        entries_unknown = ddbb.add_label_to_empty('unknown')
+                        #entries_unknown = ddbb.add_label_to_empty('unknown')
+                        # Delete entries with no label
+                        entries_unknown = ddbb.delete_empty_entries()
                         # dump database to csv and clean to speed up
                         df = ddbb.dump_all_database()
-                        df.to_csv(config.dataset_iot23_csv_file, mode="a", index=False)
+                        df.to_csv(config.dataset_iot23_csv_file, mode="a", index=False, header=False)
                         ddbb.delete_all_entries()
                         print("entries unknown from", subset, entries_unknown)
                     else:

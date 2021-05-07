@@ -34,16 +34,19 @@ class zeek_conn_entry:
         #self.resp_pkts = elemts[18] # int (e.g: 1)
         #self.resp_ip_bytes = elemts[19] # int (e.g: 40)
         #self.tunnel_parents = elemts[20]
-        if elemts[21] == "Benign": # string (e.g: benign)
-            self.label = "Benign"
-        elif elemts[21] == "Malicious":
-            if "C&C" in elemts[22]:
+        main_label = elemts[21].lower()
+        if main_label == "benign": # string (e.g: benign)
+            self.label = "benign"
+        elif main_label == "malicious":
+            minor_label = elemts[22].lower()
+            if "c&c" in minor_label:
                 self.label = "C&C"
             else:
-                self.label = "Malicious"
+                self.label = "malicious"
         else:
-            self.label = "Unknown"
+            self.label = "unknown"
         #self.detailed_label = elemts[22] # string (e.g: )
+        #print(main_label, minor_label)
 
     def __str__(self):
         return ",".join([self.ts,self.id_orig_h,self.id_orig_p,self.id_resp_h, self.id_resp_p, self.proto, self.label])
@@ -53,9 +56,12 @@ def parse_zeek_conn(file):
     with open(file, 'r') as f:
         for line in f.readlines():
             if not line.startswith('#'):
-                zeek_entry = zeek_conn_entry(line)
-                if zeek_entry.label not in ["Malicious","Unknown"]:
-                    entries.append(zeek_entry)
+                try:
+                    zeek_entry = zeek_conn_entry(line)
+                    if zeek_entry.label not in ["malicious","unknown"]:
+                        entries.append(zeek_entry)
+                except AttributeError:
+                    continue
     return entries
 
 #changes
@@ -70,7 +76,7 @@ def get_lines(database, file):
                 id_orig_p = int(elemts[3])  # port (e.g: 58687)
                 id_resp_h = elemts[4]  # addr (e.g: 192.168.1.1)
                 id_resp_p = int(elemts[5])  # port (e.g: 22)
-                proto = proto_table[elemts[6].upper()]  # string-enum (e.g: udp)
+                proto = config.proto_table[elemts[6].upper()]  # string-enum (e.g: udp)
                 label = elemts[21]  # string (e.g: benign)
                 entries.append([label, database, id_orig_h, id_resp_h, id_resp_p, id_orig_p, proto, ts])
     return entries
