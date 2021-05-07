@@ -5,30 +5,10 @@ import config
 import zeek_conn
 import argus_conn
 import os
-from decimal import Decimal
 from database import Database
 from datetime import datetime
+from Cicflow import cicflow_entry
 
-class csv_entry:
-    def __init__(self, line):
-        elmts = line.split(",")
-        self.src_addr = elmts[0]
-        self.dst_addr = elmts[1]
-        self.src_port = elmts[2]
-        self.dst_port = elmts[3]
-        self.proto = int(Decimal(elmts[4]))
-        self.timestamp = datetime.fromisoformat(elmts[5]).strftime("%Y-%m-%d %H:%M:%S")
-        self.fwd_pkts_per_s = elmts[9]
-        self.pkt_size_avg = elmts[58]
-        self.pkt_len_min = elmts[24]
-        self.pkt_len_mean = elmts[25]
-        self.down_up_ratio = elmts[57]
-        self.bwd_pkt_len_min = elmts[20]
-        self.label = None
-    def to_insert(self, dataset):
-        return [dataset, self.timestamp, self.src_addr, self.src_port, self.dst_addr, self.dst_port, self.proto,
-                self.pkt_size_avg, self.pkt_len_min, self.pkt_len_mean, self.fwd_pkts_per_s, self.down_up_ratio,
-                self.bwd_pkt_len_min, self.label]
 
 #returns: given a directory, gives the pcap and conn.log.labeled files.
 # TODO modify to get files in the botnet iot file structure
@@ -209,7 +189,7 @@ def create_entries_array(csv, buffer):
             src_addr = elmts[0]
             dst_addr = elmts[1]
             try:
-                csv_elem = csv_entry(line)
+                csv_elem = cicflow_entry(line)
                 buffer[src_addr][dst_addr].append(csv_elem)
             except KeyError:
                 try:
@@ -282,4 +262,4 @@ insert_all_data_memory('iot23', config.dataset_iot23_dir)
 #df.to_csv(config.dataset_iot23_csv_file, index=False)
 
 print("Ends at:", datetime.now())
-v
+

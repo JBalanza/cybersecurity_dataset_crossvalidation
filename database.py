@@ -17,12 +17,7 @@ class Database:
                                 [dst_addr] VARCHAR(16),
                                 [dst_port] int,
                                 [proto] int,
-                                [pkt_size_avg] real,
-                                [pkt_len_min] real,
-                                [pkt_len_mean] real,
-                                [fwd_pkts_per_s] real,
-                                [down_up_ratio] real,
-                                [bwd_pkt_len_min] real,
+                                [line] text,
                                 [label] text)''')
         self.connection.commit()
 
@@ -65,14 +60,10 @@ class Database:
             dst_addr,
             dst_port,
             proto,
-            pkt_size_avg,
-            pkt_len_min,
-            pkt_len_mean,
-            fwd_pkts_per_s,
-            down_up_ratio,
+            line
             bwd_pkt_len_min
             ) 
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)''', buffer)
+            VALUES (?,?,?,?,?,?,?,?,?)''', buffer)
         self.connection.commit()
         return handler.rowcount
 
@@ -86,15 +77,10 @@ class Database:
             dst_addr,
             dst_port,
             proto,
-            pkt_size_avg,
-            pkt_len_min,
-            pkt_len_mean,
-            fwd_pkts_per_s,
-            down_up_ratio,
-            bwd_pkt_len_min,
+            line,
             label
             ) 
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', buffer)
+            VALUES (?,?,?,?,?,?,?,?,?)''', buffer)
         self.connection.commit()
         return handler.rowcount
 
@@ -117,12 +103,7 @@ class Database:
 
     def dump_database(self, dataset):
         db_df = pandas.read_sql_query('''SELECT  
-            pkt_size_avg,
-            pkt_len_min,
-            pkt_len_mean,
-            fwd_pkts_per_s,
-            down_up_ratio,
-            bwd_pkt_len_min,
+            line,
             label
         FROM ENTRIES
         WHERE 
@@ -132,12 +113,7 @@ class Database:
 
     def dump_all_database(self):
         db_df = pandas.read_sql_query('''SELECT  
-            pkt_size_avg,
-            pkt_len_min,
-            pkt_len_mean,
-            fwd_pkts_per_s,
-            down_up_ratio,
-            bwd_pkt_len_min,
+            line,
             label
         FROM ENTRIES
         ''', self.connection)

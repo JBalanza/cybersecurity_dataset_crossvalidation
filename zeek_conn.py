@@ -34,7 +34,15 @@ class zeek_conn_entry:
         #self.resp_pkts = elemts[18] # int (e.g: 1)
         #self.resp_ip_bytes = elemts[19] # int (e.g: 40)
         #self.tunnel_parents = elemts[20]
-        self.label = elemts[21] # string (e.g: benign)
+        if elemts[21] == "Benign": # string (e.g: benign)
+            self.label = "Benign"
+        elif elemts[21] == "Malicious":
+            if "C&C" in elemts[22]:
+                self.label = "C&C"
+            else:
+                self.label = "Malicious"
+        else:
+            self.label = "Unknown"
         #self.detailed_label = elemts[22] # string (e.g: )
 
     def __str__(self):
@@ -45,7 +53,9 @@ def parse_zeek_conn(file):
     with open(file, 'r') as f:
         for line in f.readlines():
             if not line.startswith('#'):
-                entries.append(zeek_conn_entry(line))
+                zeek_conn_entry = zeek_conn_entry(line)
+                if zeek_conn_entry.label not in ["Malicious","Unknown"]:
+                    entries.append(zeek_conn_entry)
     return entries
 
 #changes
