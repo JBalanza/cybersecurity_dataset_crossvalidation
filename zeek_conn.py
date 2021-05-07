@@ -53,9 +53,9 @@ def parse_zeek_conn(file):
     with open(file, 'r') as f:
         for line in f.readlines():
             if not line.startswith('#'):
-                zeek_conn_entry = zeek_conn_entry(line)
-                if zeek_conn_entry.label not in ["Malicious","Unknown"]:
-                    entries.append(zeek_conn_entry)
+                zeek_entry = zeek_conn_entry(line)
+                if zeek_entry.label not in ["Malicious","Unknown"]:
+                    entries.append(zeek_entry)
     return entries
 
 #changes
