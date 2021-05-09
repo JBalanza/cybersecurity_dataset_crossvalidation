@@ -8,7 +8,7 @@ import os
 from database import Database
 from datetime import datetime
 from Cicflow import cicflow_entry
-from csv import QUOTE_NONE as NO_QUOTES
+import unsw_conn
 
 #returns: given a directory, gives the pcap and conn.log.labeled files.
 # TODO modify to get files in the botnet iot file structure
@@ -16,6 +16,7 @@ def get_files(dir):
     pcaps = []
     conn_file = []
     argus = []
+    labels = []
     csvs = []
     for dp, dn, filenames in os.walk(dir):
         for f in filenames:
@@ -25,11 +26,13 @@ def get_files(dir):
                 conn_file.append(os.path.join(dp,f))
             elif 'argus' in f:
                 argus.append(os.path.join(dp, f))
+            elif 'labels' in f:
+                labels.append(os.path.join(dp, f))
             elif '.csv' in f:
                 csvs.append(os.path.join(dp,f))
             else:
                 continue
-    return pcaps, conn_file, csvs, argus
+    return pcaps, conn_file, csvs, argus, labels
 
 def get_subsets(dir):
     subsets = []
@@ -103,7 +106,7 @@ def insert_all_data_memory(dataset, dir):
     entries_labeled = 0
     for subset in subsets:
         try:
-            pcaps, conn_log, csvs, argus = get_files(subset)
+            pcaps, conn_log, csvs, argus, labels = get_files(subset)
             if dataset == 'iot23':
                 for csv in csvs:
                     if not config.check_logfile(csv):
@@ -177,9 +180,40 @@ def insert_all_data_memory(dataset, dir):
                         print("entries unknown from", subset, entries_unknown)
                     else:
                         print("csv already processed:",csv)
+            elif dataset == 'UNSW_NB15':
+                unsw_labels = unsw_conn.parse_unsw_file(labels[0]) #There is only one and is short
+                print("labels read from", labels[0], ":", len(unsw_labels))
+                for csv in csvs:
+                    if not config.check_logfile(csv):
+                        print(datetime.now())
+                        entries_array, read = create_entries_array(csv, {})
+                        print("entries read from", csv, read)
+                        updated = update_labels_csv_entries(entries_array, unsw_labels)
+                        print("entries labeled from", argus_file, updated)
+                        # insert into database
+                        for set_entries in entries_array.values():
+                            buffer = []
+                            for set_entries2 in set_entries.values():
+                                # ddbb.insert_features_with_label(list(map(lambda ent: ent.to_insert(dataset),set_entries2)))
+                                buffer.extend(list(map(lambda ent: ent.to_insert(dataset), set_entries2)))
+                            ddbb.insert_features_with_label(buffer)
+                        # save some RAM
+                        del entries_array
+                        # Add file to log
+                        config.add_logfile(csv)
+                        # Add benign to empty label entries
+                        entries_unknown = ddbb.add_label_to_empty('unknown')
+                        # dump database to csv and clean to speed up
+                        df = ddbb.dump_all_database()
+                        df.to_csv(config.dataset_unswnb15_csv_file, mode="a", index=False)
+                        ddbb.delete_all_entries()
+                        print("entries unknown from", csv, entries_unknown)
+                else:
+                    print("csv already processed:", csv)
         except IndexError as e:
             print(e)
             print(subset)
+
 
 
 def create_entries_array(csv, buffer):
