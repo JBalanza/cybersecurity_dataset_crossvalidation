@@ -212,7 +212,7 @@ def update_labels_csv_entries(csv_entries, label_entries):
     for entry in label_entries:
         try:
             for csv_entry1 in csv_entries[entry.id_orig_h][entry.id_resp_h]:
-                if entry.id_orig_p == csv_entry1.src_port and entry.id_resp_p == csv_entry1.dst_port and entry.proto == csv_entry1.proto and entry.ts == csv_entry1.timestamp:
+                if entry.id_orig_p == csv_entry1.src_port and entry.id_resp_p == csv_entry1.dst_port and entry.proto == csv_entry1.proto: # and entry.ts == csv_entry1.timestamp:
                     csv_entry1.label = entry.label
                     updated += 1
         except KeyError:
