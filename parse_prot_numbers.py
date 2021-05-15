@@ -1,6 +1,6 @@
 import os
 
-file = r'C:\Users\JPortatil\Downloads\protocol-numbers-1.csv'
+file = r'./protocol-numbers-1.csv'
 with open(file, 'r') as f:
     for line in f.readlines():
         try:
