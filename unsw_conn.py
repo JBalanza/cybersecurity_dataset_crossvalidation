@@ -5,7 +5,7 @@ import config
 
 class unsw_conn_entry:
     def __init__(self, line):
-        elemts = line.split(",")
+        elemts = line.replace('\n','').split(",")
 
         self.id_orig_h = elemts[0]  # addr (e.g: 192.168.1.132)
         self.id_orig_p = elemts[1]  # port (e.g: 58687)
@@ -36,7 +36,7 @@ def parse_unsw_file(file):
             if not line.startswith('#'):
                 try:
                     unsw_entry = unsw_conn_entry(line)
-                    if unsw_entry.label == "unknown":
+                    if unsw_entry.label != "unknown":
                         entries.append(unsw_entry)
                 except Exception as e:
                     #print("Error:", e)
