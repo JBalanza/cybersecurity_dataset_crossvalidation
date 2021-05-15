@@ -189,7 +189,7 @@ def insert_all_data_memory(dataset, dir):
                         entries_array, read = create_entries_array(csv, {})
                         print("entries read from", csv, read)
                         updated = update_labels_csv_entries(entries_array, unsw_labels)
-                        print("entries labeled from", argus_file, updated)
+                        print("entries labeled from", csv, updated)
                         # insert into database
                         for set_entries in entries_array.values():
                             buffer = []
@@ -202,12 +202,15 @@ def insert_all_data_memory(dataset, dir):
                         # Add file to log
                         config.add_logfile(csv)
                         # Add benign to empty label entries
-                        entries_unknown = ddbb.add_label_to_empty('unknown')
-                        # dump database to csv and clean to speed up
+                        #entries_unknown = ddbb.add_label_to_empty('unknown')
+                        # Delete entries with no label
+                        ddbb.delete_empty_entries()
+			# dump database to csv and clean to speed up
                         df = ddbb.dump_all_database()
-                        df.to_csv(config.dataset_unswnb15_csv_file, mode="a", index=False)
+                        if df[df.columns[0]].count() > 1:
+                            df.to_csv(config.dataset_nbsw_csv_file, mode="a", index=False)
                         ddbb.delete_all_entries()
-                        print("entries unknown from", csv, entries_unknown)
+                        #print("entries unknown from", csv, entries_unknown)
                 else:
                     print("csv already processed:", csv)
         except IndexError as e:
@@ -289,11 +292,11 @@ ddbb = Database(config.database_file)
 ddbb.create_tables()
 ddbb.delete_empty_entries()
 #preprocess(config.dataset_iot23_dir)
-insert_all_data_memory('iot23', config.dataset_iot23_dir)
+#insert_all_data_memory('iot23', config.dataset_iot23_dir)
 #insert_all_data('iot23', config.dataset_iot23_dir)
 
 #insert_all_data_memory('botnet_iot', config.dataset_botnetiot_dir)
-
+insert_all_data_memory('UNSW_NB15', config.dataset_nbsw_dir)
 
 #df = ddbb.dump_database('iot23')
 #df.to_csv(config.dataset_iot23_csv_file, index=False)

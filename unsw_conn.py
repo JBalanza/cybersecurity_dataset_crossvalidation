@@ -39,6 +39,6 @@ def parse_unsw_file(file):
                     if unsw_entry.label == "unknown":
                         entries.append(unsw_entry)
                 except Exception as e:
-                    print("Error:", e)
+                    #print("Error:", e)
                     continue
     return entries

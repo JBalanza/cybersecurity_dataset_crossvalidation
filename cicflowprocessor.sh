@@ -2,7 +2,7 @@
 
 root_dir="${1}"
 pcap_files=()
-log_file="./parsed.txt"
+log_file="/media/javier/Titan/TFM/procesados/ADFA_NB15/parsed.txt"
 readarray -t pcap_files < <(find "${root_dir}" -type f -name '*.pcap')
 
 for file in "${pcap_files[@]}"

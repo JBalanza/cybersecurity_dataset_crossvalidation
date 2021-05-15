@@ -14,6 +14,8 @@ logfile = os.path.join(base_dir, 'processed.txt')
 dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23_global.csv')
 dataset_botnetiot_dir = os.path.join(base_dir, 'botnet_iot')
 dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot_global.csv')
+dataset_nbsw_dir = os.path.join(base_dir, 'ADFA_NB15')
+dataset_nbsw_csv_file = os.path.join(base_dir, 'adsw_global.csv')
 database_file = os.path.join(base_dir, 'sqlite.db')
 csv_slip_size = 3000000
 conn_log_slip_size = 10000000
@@ -167,13 +169,14 @@ print(proto_table)
 
 def add_logfile(entry):
     with open(logfile, 'a') as f:
-        f.writelines([entry])
+        f.write(entry+'\n')
 
 def check_logfile(entry):
     try:
         with open(logfile, 'r') as f:
             lines = f.readlines()
             for line in lines:
+                line = line.replace("\n","").replace("\r","")
                 if entry in line:
                     return True
             else:
