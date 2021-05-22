@@ -72,7 +72,8 @@ def normalize_label(label):
 def create_model_and_classify_itself(csv_path, name):
     X,Y = prepare_data(csv_path)
     kfold = KFold(n_splits=5, random_state=21, shuffle=True)
-    model = DecisionTreeClassifier(max_depth=5, min_samples_leaf=10, min_samples_split=5)
+    #model = DecisionTreeClassifier(max_depth=5, min_samples_leaf=10, min_samples_split=5)
+    model = RandomForestClassifier(n_estimators=100)
     cv_results = cross_val_score(model, X, Y, cv=kfold, scoring='f1', n_jobs=4)
     msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
     print(msg)
