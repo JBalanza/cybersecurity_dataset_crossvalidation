@@ -11,11 +11,13 @@ else:
     base_dir = '/media/javier/Titan/TFM/procesados/'
     dataset_iot23_dir = os.path.join(base_dir, 'iot_23')
 logfile = os.path.join(base_dir, 'processed.txt')
-dataset_iot23_csv_file =  os.path.join(base_dir, 'iot_23_global.csv')
+dataset_iot23_csv_file = os.path.join(base_dir, 'iot_23_global.csv')
 dataset_botnetiot_dir = os.path.join(base_dir, 'botnet_iot')
 dataset_botnetiot_csv_file = os.path.join(base_dir, 'botnet_iot_global.csv')
 dataset_nbsw_dir = os.path.join(base_dir, 'ADFA_NB15')
 dataset_nbsw_csv_file = os.path.join(base_dir, 'adsw_global.csv')
+dataset_toniot_csv_file = os.path.join(base_dir, 'CIC-ToN-IoT_clean.csv')
+dataset_ids2018_csv_file = os.path.join(base_dir, 'ids2018_global_clean2.csv')
 database_file = os.path.join(base_dir, 'sqlite.db')
 csv_slip_size = 3000000
 conn_log_slip_size = 10000000
@@ -26,7 +28,6 @@ proto_table["HOPOPT"] = 0
 proto_table["ICMP"] = 1
 proto_table["IGMP"] = 2
 proto_table["GGP"] = 3
-proto_table["IPV4"] = 4
 proto_table["ST"] = 5
 proto_table["TCP"] = 6
 proto_table["CBT"] = 7
@@ -165,7 +166,7 @@ proto_table["ETHERNET"] = 143
 proto_table["RESERVED"] = 255
 proto_table["ARP"] = 2054
 
-print(proto_table)
+#print(proto_table)
 
 def add_logfile(entry):
     with open(logfile, 'a') as f:

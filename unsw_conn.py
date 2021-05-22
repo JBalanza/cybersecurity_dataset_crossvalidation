@@ -12,8 +12,8 @@ class unsw_conn_entry:
         self.id_resp_h = elemts[2]  # addr (e.g: 192.168.1.1)
         self.id_resp_p = elemts[3]  # port (e.g: 22)
         self.proto = int(config.proto_table[elemts[4].upper()])  # string-enum (e.g: 17)
-        self.service = elemts[7]  # string-enum (e.g: dns)
-
+        self.service = elemts[13]  # string-enum (e.g: dns)
+        self.flow_duration = elemts[6]
 
         if elemts[48] == "0":  # string (e.g: benign)
             self.label = "benign"
